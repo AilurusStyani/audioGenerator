@@ -1,4 +1,4 @@
-function stepSourceGenerator(duration,steps,audioFreqMax,audioFreqMin,initial,terminal,testEnable)
+function stepSourceGenerator(duration,steps,audioFreqMax,audioFreqMin,initial,terminal,fileName,testEnable)
 if nargin<1 || isempty(duration)
     duration = 2; % second
 end
@@ -17,9 +17,16 @@ end
 if nargin<6 || isempty(terminal)
     terminal = 0.05; % second
 end
-if nargin<7 || isempty(testEnable)
+if nargin<7 || isempty(fileName)
+    fileName = 'stepTone.wav';
+elseif ~ischar(fileName)
+    fileName = 'stepTone.wav';
+    warning('Invalid file name, rename as ''stepTone.wav''');
+end
+if nargin<8 || isempty(testEnable)
     testEnable = true;
 end
+
 if initial > terminal
     iniLonger = true;
 else
@@ -70,5 +77,5 @@ if testEnable
     player.play();
     pause(duration);
 end
-audiowrite('stepTone.wav', y, sampleRate);
+audiowrite(fileName, y, sampleRate);
 end
