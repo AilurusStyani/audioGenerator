@@ -1,4 +1,4 @@
-function stepSourceGenerator(duration,steps,audioFreqMax,audioFreqMin,initial,terminal,fileName,testEnable)
+function stepSourceGenerator(duration,steps,audioFreqMax,audioFreqMin,simulateType,initial,terminal,fileName,testEnable)
 if nargin<1 || isempty(duration)
     duration = 2; % second
 end
@@ -11,13 +11,16 @@ end
 if nargin <4 || isempty(audioFreqMin)
     audioFreqMin = 500; % will be disable in pure tone ( steps == 1)
 end
-if nargin<5 || isempty(initial)
+if nargin<5 || isempty(simulateType)
+    simulateType = 0; % 0 for two channel, 1 for left ear only, 2 for right ear only, 3 to simulate left to right by loudness, 4 to simulate right to left by loudness
+end
+if nargin<6 || isempty(initial)
     initial = 0.05;% second
 end
-if nargin<6 || isempty(terminal)
+if nargin<7 || isempty(terminal)
     terminal = 0.05; % second
 end
-if nargin<7 || isempty(fileName)
+if nargin<8 || isempty(fileName)
     fileName = 'stepTone.wav';
 elseif ~ischar(fileName)
     fileName = 'stepTone.wav';
@@ -70,12 +73,27 @@ for i = 1:steps
         end
     end
 end
-
-player = audioplayer(y, sampleRate);
+switch simulateType
+    case 0
+        yfin = [y,-y];
+    case 1
+        yfin = [y, zeros(size(y))];
+    case 2
+        yfin = [zeros(size(y)),y];
+    case 3
+        yleft = sin((1:round(duration*sampleRate))/round(duration*sampleRate)*pi/2);
+        yright = cos((1:round(duration*sampleRate))/round(duration*sampleRate)*pi/2);
+        yfin = [y.*yleft',y.*yright'];
+    case 4
+        yleft = cos((1:round(duration*sampleRate))/round(duration*sampleRate)*pi/2);
+        yright = sin((1:round(duration*sampleRate))/round(duration*sampleRate)*pi/2);
+        yfin = [y.*yleft',y.*yright'];
+end
+player = audioplayer(yfin, sampleRate);
 if testEnable
-    plot(y)
+    plot(yfin)
     player.play();
     pause(duration);
 end
-audiowrite(fileName, y, sampleRate);
+audiowrite(fileName, yfin, sampleRate);
 end
