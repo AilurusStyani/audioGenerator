@@ -75,7 +75,7 @@ for i = 1:steps
 end
 switch simulateType
     case 0
-        yfin = [y,-y];
+        yfin = y;
     case 1
         yfin = [y, zeros(size(y))];
     case 2
