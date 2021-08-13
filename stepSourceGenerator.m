@@ -1,4 +1,4 @@
-function stepSourceGenerator(duration,steps,audioFreqMax,audioFreqMin,simulateType,initial,terminal,fileName,testEnable)
+function stepSourceGenerator(duration,steps,audioFreqMax,audioFreqMin,simulateType,initial,terminal,fileName,enableOscillation,oscillationFrequency,testEnable)
 if nargin<1 || isempty(duration)
     duration = 2; % second
 end
@@ -26,7 +26,15 @@ elseif ~ischar(fileName)
     fileName = 'stepTone.wav';
     warning('Invalid file name, rename as ''stepTone.wav''');
 end
-if nargin<8 || isempty(testEnable)
+if nargin<9 || isempty(enableOscillation)
+    enableOscillation = false;
+end
+if nargin < 10 || isempty(oscillationFrequency) 
+    if enableOscillation
+        oscillationFrequency = 100; % default 100ms
+    end
+end
+if nargin<10 || isempty(testEnable)
     testEnable = true;
 end
 
@@ -73,6 +81,11 @@ for i = 1:steps
         end
     end
 end
+
+if enableOscillation
+    y=y.*reshape(sin((1:numel(y))*2*pi/(oscillationFrequency*sampleRate/1000)),size(y,1),size(y,2));
+end
+    
 switch simulateType
     case 0
         yfin = y;
