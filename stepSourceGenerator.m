@@ -1,4 +1,4 @@
-function stepSourceGenerator(duration,steps,audioFreqMax,audioFreqMin,simulateType,initial,terminal,fileName,enableOscillation,oscillationFrequency,testEnable)
+function stepSourceGenerator(duration,steps,audioFreqMax,audioFreqMin,simulateType,attack,release,fileName,enableOscillation,oscillationFrequency,testEnable)
 if nargin<1 || isempty(duration)
     duration = 2; % second
 end
@@ -14,11 +14,11 @@ end
 if nargin<5 || isempty(simulateType)
     simulateType = 0; % 0 for two channel, 1 for left ear only, 2 for right ear only, 3 to simulate left to right by loudness, 4 to simulate right to left by loudness
 end
-if nargin<6 || isempty(initial)
-    initial = 0.05;% second
+if nargin<6 || isempty(attack)
+    attack = 0.05;% second
 end
-if nargin<7 || isempty(terminal)
-    terminal = 0.05; % second
+if nargin<7 || isempty(release)
+    release = 0.05; % second
 end
 if nargin<8 || isempty(fileName)
     fileName = 'stepTone.wav';
@@ -38,7 +38,7 @@ if nargin<10 || isempty(testEnable)
     testEnable = true;
 end
 
-if initial > terminal
+if attack > release
     iniLonger = true;
 else
     iniLonger = false;
@@ -55,9 +55,9 @@ frequencies =  linspace(audioFreqMin,audioFreqMax,steps);
 % //____\\\\           //____\\\\
 %               //____\\\\
 if iniLonger
-    bodyDuration = (duration-terminal)/steps-initial;
+    bodyDuration = (duration-release)/steps-attack;
 else
-    bodyDuration = (duration-initial)/steps-terminal;
+    bodyDuration = (duration-attack)/steps-release;
 end
 if bodyDuration < 0
     error('terminal/initial too long');
@@ -65,19 +65,19 @@ end
 
 y = zeros(round(sampleRate*duration),1); % matlab have some problam for big number, so I have to fun round() on it.
 for i = 1:steps
-    t = (1:round((bodyDuration+initial+terminal)*sampleRate))/sampleRate;
+    t = (1:round((bodyDuration+attack+release)*sampleRate))/sampleRate;
     tempY = sin(frequencies(i)*2*pi.*t)';
-    initialAmp = linspace(0,1,sampleRate*initial);
-    terminalAmp = linspace(1,0,sampleRate*terminal);
+    initialAmp = linspace(0,1,sampleRate*attack);
+    terminalAmp = linspace(1,0,sampleRate*release);
     tempY(1:length(initialAmp)) = tempY(1:length(initialAmp)).*initialAmp';
     tempY(end-length(terminalAmp)+1:end) = tempY(end-length(terminalAmp)+1:end).*terminalAmp';
     if i == 1
-        y(1:round((bodyDuration+initial+terminal)*sampleRate)) = tempY;
+        y(1:round((bodyDuration+attack+release)*sampleRate)) = tempY;
     else
         if iniLonger
-            y((i-1)*(bodyDuration+initial)*sampleRate+1 : (i*(bodyDuration+initial)+terminal)*sampleRate) = y((i-1)*(bodyDuration+initial)*sampleRate+1 : (i*(bodyDuration+initial)+terminal)*sampleRate) +tempY;
+            y((i-1)*(bodyDuration+attack)*sampleRate+1 : (i*(bodyDuration+attack)+release)*sampleRate) = y((i-1)*(bodyDuration+attack)*sampleRate+1 : (i*(bodyDuration+attack)+release)*sampleRate) +tempY;
         else
-            y((i-1)*(bodyDuration+terminal)*sampleRate+1 : (i*(bodyDuration+terminal)+initial)*sampleRate) = y((i-1)*(bodyDuration+terminal)*sampleRate+1 : (i*(bodyDuration+terminal)+initial)*sampleRate)+tempY;
+            y((i-1)*(bodyDuration+release)*sampleRate+1 : (i*(bodyDuration+release)+attack)*sampleRate) = y((i-1)*(bodyDuration+release)*sampleRate+1 : (i*(bodyDuration+release)+attack)*sampleRate)+tempY;
         end
     end
 end
